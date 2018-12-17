@@ -29,7 +29,7 @@ async function getOrdersViaPublicServiceAsync(orderIds: string[]) {
 
     const hostname = config.service.peerHost;
     const port = config.service.peerPort;
-    const sharedOrdersPath = `/shared/order?token=${serviceJwtToken}`;
+    const sharedOrdersPath = `/api/shared/order?token=${serviceJwtToken}`;
     console.log(hostname, sharedOrdersPath);
 
     return new Promise((resolve, reject) => {
@@ -39,7 +39,7 @@ async function getOrdersViaPublicServiceAsync(orderIds: string[]) {
             path: sharedOrdersPath,
             method: "POST",
         }, (wxRes) => {
-            console.log("response from service api /shared/orders");
+            console.log("response from service api /api/shared/orders");
 
             if (wxRes.statusCode != 200) {
                 console.error(wxRes.statusCode, wxRes.statusMessage);
@@ -92,7 +92,7 @@ async function getOrderDetailViaPublicServiceAsync(orderId: string) {
 
     const hostname = config.service.peerHost;
     const port = config.service.peerPort;
-    const sharedOrderPath = `/shared/order/${orderId}?token=${serviceJwtToken}`;
+    const sharedOrderPath = `/api/shared/order/${orderId}?token=${serviceJwtToken}`;
     console.log(hostname, sharedOrderPath);
 
     return new Promise((resolve, reject) => {
@@ -102,7 +102,7 @@ async function getOrderDetailViaPublicServiceAsync(orderId: string) {
             path: sharedOrderPath,
             method: "GET",
         }, (wxRes) => {
-            console.log("response from service api /shared/order");
+            console.log("response from service api /api/shared/order");
 
             if (wxRes.statusCode != 200) {
                 console.error(wxRes.statusCode, wxRes.statusMessage);
