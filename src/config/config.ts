@@ -88,7 +88,6 @@ export const config = {
         appSecretMobile: envVars.WX_APP_SECRET_MOBILE,
         loginUrl: envVars.WX_LOGIN_URI,
         redirectUrl: encodeURIComponent(envVars.REDIRECT_URI),
-        downloadUrl: envVars.DOWNLOAD_URI,
     },
     mysql: {
         host: envVars.MYSQL_HOST,
