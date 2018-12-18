@@ -38,10 +38,6 @@ const envVarsSchema = Joi.object({
         .description('WeChat AppId'),
     WX_APP_SECRET: Joi.string().required()
         .description('WeChat AppSecret'),
-    WX_APP_ID_MOBILE: Joi.string().required()
-        .description('WeChat AppId for mobile apps'),
-    WX_APP_SECRET_MOBILE: Joi.string().required()
-        .description('WeChat AppSecret for mobile apps'),
     WX_LOGIN_URI: Joi.string().required()
         .description('WeChat LoginUri'),
     REDIRECT_URI: Joi.string().required()
@@ -82,10 +78,10 @@ export const config = {
         port: envVars.MONGO_PORT,
     },
     wx: {
+        mchId: envVars.WX_MCH_ID,
+        mchSecret: envVars.WX_MCH_KEY,
         appId: envVars.WX_APP_ID,
         appSecret: envVars.WX_APP_SECRET,
-        appIdMobile: envVars.WX_APP_ID_MOBILE,
-        appSecretMobile: envVars.WX_APP_SECRET_MOBILE,
         loginUrl: envVars.WX_LOGIN_URI,
         redirectUrl: encodeURIComponent(envVars.REDIRECT_URI),
     },

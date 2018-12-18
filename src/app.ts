@@ -10,6 +10,7 @@ import * as formidable from 'formidable';
 
 import indexRouter from './routes';
 import passport from './config/passport';
+import { config } from './config/config';
 
 const app = express();
 
@@ -54,13 +55,16 @@ app.use(function (req, res, next) {
 app.use((err: any, req: any, res: any, next: any) => {
     // set locals, only providing error in development
     res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    res.locals.error = config.env === 'development' ? err : {};
+
+    console.error(err, err.toString());
 
     // render the error page
     res.status(err.status || 500);
     res.json({
-        code: err.status,
-        message: err.message,
+        code: res.locals.error.status || err.status || 500,
+        message: res.locals.message || err.statusText,
+        error: res.locals.error.toString()
     });
 });
 
