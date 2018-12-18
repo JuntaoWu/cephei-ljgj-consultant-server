@@ -1,5 +1,5 @@
 
-import SMSClient from '@alicloud/sms-sdk';
+import * as SMSClient from '@alicloud/sms-sdk';
 import config from './config';
 import makeSingleton from '../helpers/makeSingleton';
 

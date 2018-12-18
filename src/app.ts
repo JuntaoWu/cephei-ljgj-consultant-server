@@ -14,7 +14,7 @@ import passport from './config/passport';
 const app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, '../../views'));
+app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'jade');
 
 // parse body params and attache them to req.body
@@ -29,16 +29,14 @@ app.use(cors());
 
 app.use(logger('dev'));
 
-app.use(express.static(path.join(__dirname, '../client')));
-
-app.use(express.static(path.join(__dirname, '../../public'), {
+app.use(express.static(path.join(__dirname, '../public'), {
     setHeaders: function (res, p) {
         if (p.indexOf('sw.js') !== -1 || p.indexOf('manifest.json') !== -1 || p.indexOf('index.html') !== -1) {
             res.setHeader('Cache-Control', 'no-cache');
         }
     }
 }), cors());
-app.use(express.static(path.join(__dirname, '../../public/sw.js'), {
+app.use(express.static(path.join(__dirname, '../public/sw.js'), {
     etag: false
 }), cors());
 
@@ -60,7 +58,10 @@ app.use((err: any, req: any, res: any, next: any) => {
 
     // render the error page
     res.status(err.status || 500);
-    res.render('error');
+    res.json({
+        code: err.status,
+        message: err.message,
+    });
 });
 
 export default app;
