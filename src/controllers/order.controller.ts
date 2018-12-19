@@ -3,10 +3,13 @@ import orderWorkModel, { orderwork } from '../models/orderwork.model';
 import { Request, Response, NextFunction } from 'express';
 import { IncomingMessage } from 'http';
 import * as _ from 'lodash';
-import jwt from 'jsonwebtoken';
-import http from 'http';
+import * as jwt from 'jsonwebtoken';
+import * as http from 'http';
 import config from '../config/config';
 import orderContractModel, { OrderContract } from '../models/orderContract.model';
+import APIError from '../helpers/APIError';
+
+import * as httpStatus from 'http-status';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     // 查询施工中的订单
@@ -22,7 +25,7 @@ export let list = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
-export let getAllOrderList = async (req, res, next)=> {
+export let getAllOrderList = async (req, res, next) => {
 
     // 查询全部的订单
     let orders = await OrderModel.find({ assignee: req.user.phoneNo });
@@ -37,10 +40,10 @@ export let getAllOrderList = async (req, res, next)=> {
     });
 };
 
-export let getInitOrderList = async (req, res, next)=> {
+export let getInitOrderList = async (req, res, next) => {
 
     // 查询审核中/初始化中的订单
-    let orders = await OrderModel.find({ assignee: req.user.phoneNo , orderStatus: OrderStatus.Initializing});
+    let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Initializing });
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
@@ -52,10 +55,10 @@ export let getInitOrderList = async (req, res, next)=> {
     });
 };
 
-export let getPreparingOrderList = async (req, res, next)=> {
+export let getPreparingOrderList = async (req, res, next) => {
 
     // 查询准备中的订单
-    let orders = await OrderModel.find({ assignee: req.user.phoneNo , orderStatus: OrderStatus.Preparing});
+    let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Preparing });
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
@@ -67,10 +70,10 @@ export let getPreparingOrderList = async (req, res, next)=> {
     });
 };
 
-export let getInProgressOrderList = async (req, res, next)=> {
+export let getInProgressOrderList = async (req, res, next) => {
 
     // 查询施工中中的订单
-    let orders = await OrderModel.find({ assignee: req.user.phoneNo , orderStatus: OrderStatus.InProgress});
+    let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.InProgress });
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
@@ -82,10 +85,10 @@ export let getInProgressOrderList = async (req, res, next)=> {
     });
 };
 
-export let getCompletedOrderList = async (req, res, next)=> {
+export let getCompletedOrderList = async (req, res, next) => {
 
     // 查询施工中的订单
-    let orders = await OrderModel.find({ assignee: req.user.phoneNo , orderStatus: OrderStatus.Completed});
+    let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Completed });
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
@@ -98,10 +101,10 @@ export let getCompletedOrderList = async (req, res, next)=> {
 };
 
 
-export let getCanceledOrderList = async (req, res, next)=> {
+export let getCanceledOrderList = async (req, res, next) => {
 
     // 查询已经取消的订单
-    let orders = await OrderModel.find({ assignee: req.user.phoneNo , orderStatus: OrderStatus.Canceled});
+    let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Canceled });
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
@@ -124,12 +127,20 @@ async function getOrdersViaPublicServiceAsync(orderIds: string[]) {
     const sharedOrdersPath = `/api/shared/order?token=${serviceJwtToken}`;
     console.log(hostname, sharedOrdersPath);
 
+    let postData = JSON.stringify({
+        payload: orderIds
+    });
+
     return new Promise((resolve, reject) => {
         let request = http.request({
             hostname: hostname,
             port: port,
             path: sharedOrdersPath,
             method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
         }, (wxRes) => {
             console.log("response from service api /api/shared/orders");
 
@@ -159,12 +170,17 @@ async function getOrdersViaPublicServiceAsync(orderIds: string[]) {
                 }
             });
         });
-        request.end(orderIds);
+        request.end(postData);
     });
 }
 
 export let load = async (req: Request, res: Response, next: NextFunction) => {
     let order = await OrderModel.findOne({ orderId: req.params.orderId });
+
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
+    }
 
     let fetchedOrder = await getOrderDetailViaPublicServiceAsync(order.orderId.toString());
 
@@ -260,13 +276,13 @@ export let getOlderInfo = async (req, res, next) => {
             orderTime: model.orderTime,
             orderStatus: model.orderStatus,
             orderAddress: model.orderAddress,
-            contactsUserName:model.contactsUserName,
-            phoneNo:model.phoneNo
+            contactsUserName: model.contactsUserName,
+            phoneNo: model.phoneNo
         },
-        orderContract:ordercontracturls,
+        orderContract: ordercontracturls,
         groupOrderInfo: model.isGroupOrder ? {
             houseName: model.houseName,
-            groupService:  model.orderContent
+            groupService: model.orderContent
         } : null,
         orderWorkList: orderworks
     }
@@ -306,7 +322,7 @@ export let create = async (req, res, next) => {
         existingOrder = await OrderModel.findOne({ orderId: req.body.orderId });
     }
     const order = new OrderModel(req.body);
- //   order.assignee = req.user.phoneNo;
+    //   order.assignee = req.user.phoneNo;
     await order.save();
 
     return res.json({
