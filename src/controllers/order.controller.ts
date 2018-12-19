@@ -1,4 +1,3 @@
-import OrderModel, { Order, OrderStatus } from '../models/order.model';
 import orderWorkModel, { orderwork } from '../models/orderwork.model';
 import { Request, Response, NextFunction } from 'express';
 import { IncomingMessage } from 'http';
@@ -6,14 +5,21 @@ import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import * as http from 'http';
 import config from '../config/config';
+import OrderModel, { OrderStatus } from '../models/order.model';
 import orderContractModel, { OrderContract } from '../models/orderContract.model';
 import APIError from '../helpers/APIError';
 
 import * as httpStatus from 'http-status';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
+    const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
     // 查询施工中的订单
-    let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.InProgress });
+    let condition: any = { assignee: req.user.phoneNo };
+    if (+status) {
+        condition.orderStatus = +status;
+    }
+
+    let orders = await OrderModel.find(condition).skip(+skip).limit(+limit);
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);

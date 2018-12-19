@@ -11,7 +11,7 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 /** POST /api/auth/login - Returns token if correct username and password is provided */
 router.route('/login')
-    .post(passport.authenticate("local", { failWithError: true }), authCtrl.login);
+    .post(validate(paramValidation.login), passport.authenticate("local", { failWithError: true }), authCtrl.login);
 
 /** POST /api/auth/getVerificationCode - Allow anyone to send SMS code via phoneNo */
 router.route('/getVerificationCode')
