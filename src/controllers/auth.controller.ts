@@ -14,6 +14,7 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 
 import * as speakeasy from 'speakeasy';
+
 import MySMSClient from '../config/sms-client';
 
 export let register = async (req: Request, res: Response, next: NextFunction) => {
@@ -24,7 +25,7 @@ export let register = async (req: Request, res: Response, next: NextFunction) =>
 };
 
 /**
- * Returns jwt token if valid username and password is provided
+ * Returns jwt token if valid username and pord is provided
  */
 export let login = async (req: Request, res: Response, next: NextFunction) => {
 
