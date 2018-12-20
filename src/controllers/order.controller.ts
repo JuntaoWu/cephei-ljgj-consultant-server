@@ -1,4 +1,4 @@
-import orderWorkModel, { orderwork } from '../models/orderwork.model';
+
 import { Request, Response, NextFunction } from 'express';
 import { IncomingMessage } from 'http';
 import * as _ from 'lodash';
@@ -193,7 +193,7 @@ export let load = async (req: Request, res: Response, next: NextFunction) => {
     return res.json({
         code: 0,
         message: 'OK',
-        data: order
+        data: fetchedOrder
     });
 };
 
@@ -246,58 +246,6 @@ async function getOrderDetailViaPublicServiceAsync(orderId: string) {
 
         request.end();
     });
-}
-
-export let getOlderInfo = async (req, res, next) => {
-
-    let model = await OrderModel.findOne({ orderid: req.query.orderid });
-    if (model == null) {
-        return res.json({
-            code: -1,
-            error: true,
-            message: "have no order ! "
-        });
-    }
-
-    let orderWorkobj = await orderWorkModel.find({ orderid: req.query.orderid });
-
-    let orderworks = orderWorkobj.map(m => {
-        let result = {
-            orderworkid: m.orderWorkid,
-            orderWork: m.orderWork,
-            createTime: m.createTime
-        }
-        return result;
-    }
-    );
-    let orderContractobj = await orderContractModel.findOne({ orderid: req.query.orderid });
-
-    let ordercontracturls = orderContractobj.contractUrls;
-
-    let result = {
-        orderid: model.orderId,
-        orderBaseInfo:
-        {
-            orderContent: model.orderContent,
-            orderTime: model.orderTime,
-            orderStatus: model.orderStatus,
-            orderAddress: model.orderAddress,
-            contactsUserName: model.contactsUserName,
-            phoneNo: model.phoneNo
-        },
-        orderContract: ordercontracturls,
-        groupOrderInfo: model.isGroupOrder ? {
-            houseName: model.houseName,
-            groupService: model.orderContent
-        } : null,
-        orderWorkList: orderworks
-    }
-    return res.json({
-        code: 0,
-        message: "OK",
-        data: result
-    });
-
 }
 
 
