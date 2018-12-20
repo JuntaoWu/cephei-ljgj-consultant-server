@@ -13,12 +13,13 @@ import * as httpStatus from 'http-status';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
-    // 查询施工中的订单
+
     let condition: any = { assignee: req.user.phoneNo };
     if (+status) {
         condition.orderStatus = +status;
     }
 
+    let totalItems = await OrderModel.count(condition);
     let orders = await OrderModel.find(condition).skip(+skip).limit(+limit);
     const orderIds = orders.map(i => i.orderId.toString());
 
@@ -27,7 +28,10 @@ export let list = async (req: Request, res: Response, next: NextFunction) => {
     return res.json({
         code: 0,
         message: 'OK',
-        data: fetchedOrders
+        data: {
+            totalItems: totalItems,
+            items: fetchedOrders
+        }
     });
 };
 
