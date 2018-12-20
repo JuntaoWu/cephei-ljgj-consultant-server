@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import * as http from 'http';
 import config from '../config/config';
 import OrderModel, { OrderStatus } from '../models/order.model';
-import orderContractModel, { OrderContract } from '../models/orderContract.model';
+import orderContractModel, { OrderContract } from '../models/ordercontract.model';
 import APIError from '../helpers/APIError';
 
 import * as httpStatus from 'http-status';
