@@ -249,25 +249,134 @@ async function getOrderDetailViaPublicServiceAsync(orderId: string) {
 }
 
 
-/*
+export let editOrderAmount = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
 
-export let getContract = async (req, res, next) => {
-    let ordercontractObj = await orderContractModel.findOne({ orderid: req.query.orderid });
-    if (ordercontractObj) {
-        return res.json(ordercontractObj);
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
     }
-    else {
-        return res.json({
-            error: true,
-            message: "error : getContract error",
-            data: {
-                orderid: req.body.orderid
+
+    let fetchedOrder = await editOrderAmountAsync(order.orderId.toString(),req.body.orderAmount);
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrder
+    });
+};
+
+async function editOrderAmountAsync(orderId: string,amount:Number) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/editOrderAmount?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderId: orderId,
+        orderAmount:amount
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
             }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
         });
-    }
+        request.end(postData);
+    });
 }
 
-*/
+
+async function getOrderContractAsync(orderId: string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/${orderId}?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "GET",
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+
+        request.end();
+    });
+}
+
 
 export let create = async (req, res, next) => {
 

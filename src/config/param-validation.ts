@@ -19,4 +19,10 @@ export default {
             orderId: Joi.string().required()
         }
     },
+    // GET /api/order/:orderId
+    editOrderAmount: {
+        body: {
+            orderId: Joi.string().required()
+        }
+    },
 };
