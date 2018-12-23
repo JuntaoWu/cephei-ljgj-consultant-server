@@ -16,4 +16,10 @@ router.get('/:orderId', validate(paramValidation.getOrderDetail), passport.authe
 
 router.post('/create', passport.authenticate('jwt'), orderCtrl.create);
 
+router.post('/editOrderAmount', validate(paramValidation.editOrderAmount), orderCtrl.editOrderAmount);
+
+router.post('/appendOrderWorkToOrder', validate(paramValidation.appendOrderWorkToOrder), orderCtrl.appendOrderWorkToOrder);
+
+router.post('/editOrderWorkToOrder', validate(paramValidation.editOrderWorkToOrder), orderCtrl.editOrderWorkToOrder);
+
 export default router;

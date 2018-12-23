@@ -11,6 +11,8 @@ import APIError from '../helpers/APIError';
 
 import * as httpStatus from 'http-status';
 
+import orderWorkModel from '../models/orderwork.model';
+
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
 
@@ -253,25 +255,291 @@ async function getOrderDetailViaPublicServiceAsync(orderId: string) {
 }
 
 
-/*
+/// 增加施工内容到订单
+export let appendOrderWorkToOrder = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
 
-export let getContract = async (req, res, next) => {
-    let ordercontractObj = await orderContractModel.findOne({ orderid: req.query.orderid });
-    if (ordercontractObj) {
-        return res.json(ordercontractObj);
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
     }
-    else {
-        return res.json({
-            error: true,
-            message: "error : getContract error",
-            data: {
-                orderid: req.body.orderid
+
+    let fetchedOrder = await appendOrderWorkToOrderAsync(order.orderId.toString(),req.body.orderWork.toString());
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrder
+    });
+};
+
+/// 增加施工内容到订单 http 请求
+async function appendOrderWorkToOrderAsync(orderId: string,orderWork:string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/appendOrderWorkToOrder?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderId: orderId,
+        orderWork:orderWork
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
             }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
         });
-    }
+        request.end(postData);
+    });
 }
 
-*/
+/// 编辑施工内容到订单
+export let editOrderWorkToOrder = async (req: Request, res: Response, next: NextFunction) => {
+  
+    if (! req.body.orderWorkid ) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
+    }
+
+    let fetchedOrder = await editOrderWorkToOrderAsync( req.body.orderWorkid.toString(),req.body.orderWork.toString());
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrder
+    });
+};
+
+/// 增加施工内容到订单 http 请求
+async function editOrderWorkToOrderAsync(orderWorkid: string,orderWork:string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/editOrderWorkToOrder?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderWorkid: orderWorkid,
+        orderWork:orderWork
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+        request.end(postData);
+    });
+}
+
+
+
+export let editOrderAmount = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
+
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
+    }
+
+    let fetchedOrder = await editOrderAmountAsync(order.orderId.toString(),req.body.orderAmount.toString());
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrder
+    });
+};
+
+async function editOrderAmountAsync(orderId: string,orderAmount:Number) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/editOrderAmount?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderId: orderId,
+        orderAmount:orderAmount
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+        request.end(postData);
+    });
+}
+
+
+async function getOrderContractAsync(orderId: string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/${orderId}?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "GET",
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+
+        request.end();
+    });
+}
+
 
 export let create = async (req, res, next) => {
 
