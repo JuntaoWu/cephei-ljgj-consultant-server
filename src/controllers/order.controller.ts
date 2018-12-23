@@ -8,10 +8,11 @@ import config from '../config/config';
 import OrderModel, { OrderStatus } from '../models/order.model';
 import orderContractModel, { OrderContract } from '../models/orderContract.model';
 import APIError from '../helpers/APIError';
-
 import * as httpStatus from 'http-status';
 
-import orderWorkModel from '../models/orderwork.model';
+import moment, * as moments from 'moment';
+
+import OrderDiaryModel from '../models/orderdiary.mode';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
@@ -485,6 +486,107 @@ async function editOrderAmountAsync(orderId: string,orderAmount:Number) {
 }
 
 
+/*
+    获取订单折扣金额，根据不同条件获取订单折扣金额
+*/
+let getOrderDiaryThemeByType = function (diarytype) {
+    switch (diarytype) {
+        case "1":
+            {
+                return "联系用户";
+            }
+            break;
+        case "2":
+            {
+                return "上门查看";
+            }
+            break;
+        case "3":
+            {
+                return "准备施工";
+            }
+            break;
+        case "4":
+            {
+                return "正在施工";
+            }
+            break;
+        case "5":
+            {
+                return "项目完成";
+            }
+            break;
+        case "6":
+            {
+                return "项目中止/取消";
+            }
+            break;
+        case "7":
+            {
+                return "其他";
+            }
+            break;
+    }
+    return "其他";
+}
+
+//创建订单日志
+export let createOrderDiary = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
+
+    if (!order) {
+        return res.json({
+            code: -1,
+            message: "error",
+            data: null
+        });
+    }
+
+    let diaryid = "ORDER_DIARY_" + _.random(10000, 99999) ;
+
+    let theme  =getOrderDiaryThemeByType(req.body.orderDiaryType);
+
+    let diaryitem = new orderContractModel({
+        orderDiaryId: diaryid,
+        orderId: req.body.orderId,
+        orderDiaryTheme: theme,//
+        orderDiaryType: req.body.orderDiaryType,//
+        orderDiaryContent:req.body.orderDiaryContent,
+        diaryPicUrls: req.body.diaryPicUrls
+    });
+
+    let savedContract = await diaryitem.save();
+
+    return res.json({
+        code: 0,
+        message: "OK",
+        data: {
+            orderDiaryId:diaryid,
+            orderDiaryTheme: theme
+        }
+    });
+};
+
+//获取订单日志
+export let getOrderDiarys = async (req: Request, res: Response, next: NextFunction) => {
+
+    let diarys = await OrderDiaryModel.find({ orderId: req.body.orderId });
+
+    if (!diarys) {
+        return res.json({
+            code: -1,
+            message: "error",
+            data: null
+        });
+    }
+    else
+    {
+        return res.json(diarys);
+    }
+
+};
+
+//获取合同
 async function getOrderContractAsync(orderId: string) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,

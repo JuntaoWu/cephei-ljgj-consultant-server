@@ -22,4 +22,8 @@ router.post('/appendOrderWorkToOrder', validate(paramValidation.appendOrderWorkT
 
 router.post('/editOrderWorkToOrder', validate(paramValidation.editOrderWorkToOrder), orderCtrl.editOrderWorkToOrder);
 
+router.get('/getOrderDiarys', validate(paramValidation.getOrderDiarys), orderCtrl.getOrderDiarys);
+
+router.post('/createOrderDiary', validate(paramValidation.createOrderDiary), orderCtrl.createOrderDiary);
+
 export default router;
