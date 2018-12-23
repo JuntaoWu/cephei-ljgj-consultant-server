@@ -2,6 +2,7 @@ import * as express from 'express';
 
 import authRouter from './auth.route';
 import orderRouter from './order.route';
+import backlogRouter from './backlog.route';
 
 const router = express.Router();
 
@@ -12,6 +13,6 @@ const router = express.Router();
 
 router.use('/auth', authRouter);
 router.use('/order', orderRouter);
-
+router.use('/backlog', backlogRouter);
 
 export default router;
