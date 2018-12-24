@@ -36,5 +36,21 @@ export default {
         body: {
             orderWorkid: Joi.string().required()
         }
-    }
+    },
+     // GET /api/order/:orderId
+     getOrderDiarys: {
+        params: {
+            orderId: Joi.string().required()
+        }
+    },
+    createOrderDiary: {
+        body: {
+            orderId: Joi.string().required()
+        }
+    },
+    createOrderContract: {
+        body: {
+            orderId: Joi.string().required()
+        }
+    },
 };

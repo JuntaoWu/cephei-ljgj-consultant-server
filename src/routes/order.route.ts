@@ -22,4 +22,10 @@ router.post('/appendOrderWorkToOrder', validate(paramValidation.appendOrderWorkT
 
 router.post('/editOrderWorkToOrder', validate(paramValidation.editOrderWorkToOrder), orderCtrl.editOrderWorkToOrder);
 
+router.get('/getOrderDiarys', validate(paramValidation.getOrderDiarys), orderCtrl.getOrderDiarys);
+
+router.post('/createOrderDiary', validate(paramValidation.createOrderDiary), orderCtrl.createOrderDiary);
+
+router.post('/createOrderContract', validate(paramValidation.createOrderContract), orderCtrl.createOrderContract);
+
 export default router;

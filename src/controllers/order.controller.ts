@@ -8,10 +8,11 @@ import config from '../config/config';
 import OrderModel, { OrderStatus } from '../models/order.model';
 import orderContractModel, { OrderContract } from '../models/ordercontract.model';
 import APIError from '../helpers/APIError';
-
 import * as httpStatus from 'http-status';
 
-import orderWorkModel from '../models/orderwork.model';
+import moment, * as moments from 'moment';
+
+import OrderDiaryModel from '../models/orderdiary.mode';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
@@ -489,6 +490,189 @@ async function editOrderAmountAsync(orderId: string,orderAmount:Number) {
 }
 
 
+/*
+    获取订单折扣金额，根据不同条件获取订单折扣金额
+*/
+let getOrderDiaryThemeByType = function (diarytype) {
+    switch (diarytype) {
+        case "1":
+            {
+                return "联系用户";
+            }
+            break;
+        case "2":
+            {
+                return "上门查看";
+            }
+            break;
+        case "3":
+            {
+                return "准备施工";
+            }
+            break;
+        case "4":
+            {
+                return "正在施工";
+            }
+            break;
+        case "5":
+            {
+                return "项目完成";
+            }
+            break;
+        case "6":
+            {
+                return "项目中止/取消";
+            }
+            break;
+        case "7":
+            {
+                return "其他";
+            }
+            break;
+    }
+    return "其他";
+}
+
+//创建订单日志
+export let createOrderDiary = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
+
+    if (!order) {
+        return res.json({
+            code: -1,
+            message: "error",
+            data: null
+        });
+    }
+
+    let diaryid = "ORDER_DIARY_" + _.random(10000, 99999) ;
+
+    let theme  =getOrderDiaryThemeByType(req.body.orderDiaryType);
+
+    let diaryitem = new orderContractModel({
+        orderDiaryId: diaryid,
+        orderId: req.body.orderId,
+        orderDiaryTheme: theme,//
+        orderDiaryType: req.body.orderDiaryType,//
+        orderDiaryContent:req.body.orderDiaryContent,
+        diaryPicUrls: req.body.diaryPicUrls
+    });
+
+    let savedContract = await diaryitem.save();
+
+    return res.json({
+        code: 0,
+        message: "OK",
+        data: {
+            orderDiaryId:diaryid,
+            orderDiaryTheme: theme
+        }
+    });
+};
+
+
+
+//获取订单日志
+export let getOrderDiarys = async (req: Request, res: Response, next: NextFunction) => {
+
+    let diarys = await OrderDiaryModel.find({ orderId: req.params.orderId });
+
+    if (!diarys) {
+        return res.json({
+            code: -1,
+            message: "error",
+            data: null
+        });
+    }
+    else
+    {
+        return res.json(diarys);
+    }
+
+};
+
+//创建订单日志
+export let createOrderContract = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
+
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
+    }
+
+    let fetchedOrder = await createOrderContractAsync(order.orderId.toString(),req.body.contractUrls);
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrder
+    });
+};
+
+
+async function createOrderContractAsync(orderId: string,contractUrls : Array<String>) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/createOrderContract?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderId: orderId,
+        contractUrls:contractUrls
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+        request.end(postData);
+    });
+}
+
+
+
+//获取合同
 async function getOrderContractAsync(orderId: string) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
