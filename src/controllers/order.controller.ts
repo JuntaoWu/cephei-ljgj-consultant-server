@@ -567,10 +567,12 @@ export let createOrderDiary = async (req: Request, res: Response, next: NextFunc
     });
 };
 
+
+
 //获取订单日志
 export let getOrderDiarys = async (req: Request, res: Response, next: NextFunction) => {
 
-    let diarys = await OrderDiaryModel.find({ orderId: req.body.orderId });
+    let diarys = await OrderDiaryModel.find({ orderId: req.params.orderId });
 
     if (!diarys) {
         return res.json({
@@ -585,6 +587,86 @@ export let getOrderDiarys = async (req: Request, res: Response, next: NextFuncti
     }
 
 };
+
+//创建订单日志
+export let createOrderContract = async (req: Request, res: Response, next: NextFunction) => {
+    let order = await OrderModel.findOne({ orderId: req.body.orderId });
+
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
+    }
+
+    let fetchedOrder = await createOrderContractAsync(order.orderId.toString(),req.body.contractUrls);
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrder
+    });
+};
+
+
+async function createOrderContractAsync(orderId: string,contractUrls : Array<String>) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/createOrderContract?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderId: orderId,
+        contractUrls:contractUrls
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+        request.end(postData);
+    });
+}
+
+
 
 //获取合同
 async function getOrderContractAsync(orderId: string) {

@@ -48,4 +48,9 @@ export default {
             orderId: Joi.string().required()
         }
     },
+    createOrderContract: {
+        body: {
+            orderId: Joi.string().required()
+        }
+    },
 };

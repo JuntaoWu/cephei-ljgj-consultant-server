@@ -26,4 +26,6 @@ router.get('/getOrderDiarys', validate(paramValidation.getOrderDiarys), orderCtr
 
 router.post('/createOrderDiary', validate(paramValidation.createOrderDiary), orderCtrl.createOrderDiary);
 
+router.post('/createOrderContract', validate(paramValidation.createOrderContract), orderCtrl.createOrderContract);
+
 export default router;
