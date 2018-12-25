@@ -10,7 +10,7 @@ import orderContractModel, { OrderContract } from '../models/ordercontract.model
 import APIError from '../helpers/APIError';
 import * as httpStatus from 'http-status';
 
-import moment, * as moments from 'moment';
+import * as moment from 'moment';
 
 import OrderDiaryModel from '../models/orderdiary.mode';
 
@@ -265,7 +265,7 @@ export let appendOrderWorkToOrder = async (req: Request, res: Response, next: Ne
         return next(err);
     }
 
-    let fetchedOrder = await appendOrderWorkToOrderAsync(order.orderId.toString(),req.body.orderWork.toString());
+    let fetchedOrder = await appendOrderWorkToOrderAsync(order.orderId.toString(), req.body.orderWork.toString());
 
     return res.json({
         code: 0,
@@ -275,7 +275,7 @@ export let appendOrderWorkToOrder = async (req: Request, res: Response, next: Ne
 };
 
 /// 增加施工内容到订单 http 请求
-async function appendOrderWorkToOrderAsync(orderId: string,orderWork:string) {
+async function appendOrderWorkToOrderAsync(orderId: string, orderWork: string) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -288,7 +288,7 @@ async function appendOrderWorkToOrderAsync(orderId: string,orderWork:string) {
 
     let postData = JSON.stringify({
         orderId: orderId,
-        orderWork:orderWork
+        orderWork: orderWork
     });
 
     return new Promise((resolve, reject) => {
@@ -336,13 +336,13 @@ async function appendOrderWorkToOrderAsync(orderId: string,orderWork:string) {
 
 /// 编辑施工内容到订单
 export let editOrderWorkToOrder = async (req: Request, res: Response, next: NextFunction) => {
-  
-    if (! req.body.orderWorkid ) {
+
+    if (!req.body.orderWorkid) {
         const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
         return next(err);
     }
 
-    let fetchedOrder = await editOrderWorkToOrderAsync( req.body.orderWorkid.toString(),req.body.orderWork.toString());
+    let fetchedOrder = await editOrderWorkToOrderAsync(req.body.orderWorkid.toString(), req.body.orderWork.toString());
 
     return res.json({
         code: 0,
@@ -352,7 +352,7 @@ export let editOrderWorkToOrder = async (req: Request, res: Response, next: Next
 };
 
 /// 增加施工内容到订单 http 请求
-async function editOrderWorkToOrderAsync(orderWorkid: string,orderWork:string) {
+async function editOrderWorkToOrderAsync(orderWorkid: string, orderWork: string) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -365,7 +365,7 @@ async function editOrderWorkToOrderAsync(orderWorkid: string,orderWork:string) {
 
     let postData = JSON.stringify({
         orderWorkid: orderWorkid,
-        orderWork:orderWork
+        orderWork: orderWork
     });
 
     return new Promise((resolve, reject) => {
@@ -421,7 +421,7 @@ export let editOrderAmount = async (req: Request, res: Response, next: NextFunct
         return next(err);
     }
 
-    let fetchedOrder = await editOrderAmountAsync(order.orderId.toString(),req.body.orderAmount.toString());
+    let fetchedOrder = await editOrderAmountAsync(order.orderId.toString(), req.body.orderAmount.toString());
 
     return res.json({
         code: 0,
@@ -430,7 +430,7 @@ export let editOrderAmount = async (req: Request, res: Response, next: NextFunct
     });
 };
 
-async function editOrderAmountAsync(orderId: string,orderAmount:Number) {
+async function editOrderAmountAsync(orderId: string, orderAmount: Number) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -443,7 +443,7 @@ async function editOrderAmountAsync(orderId: string,orderAmount:Number) {
 
     let postData = JSON.stringify({
         orderId: orderId,
-        orderAmount:orderAmount
+        orderAmount: orderAmount
     });
 
     return new Promise((resolve, reject) => {
@@ -546,16 +546,16 @@ export let createOrderDiary = async (req: Request, res: Response, next: NextFunc
         });
     }
 
-    let diaryid = "ORDER_DIARY_" + _.random(10000, 99999) ;
+    let diaryid = `ORDER_DIARY_${_.random(10000, 99999)}_${moment().format(config.formats.idDateFormat)}`;
 
-    let theme  =getOrderDiaryThemeByType(req.body.orderDiaryType);
+    let theme = getOrderDiaryThemeByType(req.body.orderDiaryType);
 
-    let diaryitem = new orderContractModel({
+    let diaryitem = new OrderDiaryModel({
         orderDiaryId: diaryid,
         orderId: req.body.orderId,
         orderDiaryTheme: theme,//
         orderDiaryType: req.body.orderDiaryType,//
-        orderDiaryContent:req.body.orderDiaryContent,
+        orderDiaryContent: req.body.orderDiaryContent,
         diaryPicUrls: req.body.diaryPicUrls
     });
 
@@ -565,7 +565,7 @@ export let createOrderDiary = async (req: Request, res: Response, next: NextFunc
         code: 0,
         message: "OK",
         data: {
-            orderDiaryId:diaryid,
+            orderDiaryId: diaryid,
             orderDiaryTheme: theme
         }
     });
@@ -585,8 +585,7 @@ export let getOrderDiarys = async (req: Request, res: Response, next: NextFuncti
             data: null
         });
     }
-    else
-    {
+    else {
         return res.json(diarys);
     }
 
@@ -601,7 +600,7 @@ export let createOrderContract = async (req: Request, res: Response, next: NextF
         return next(err);
     }
 
-    let fetchedOrder = await createOrderContractAsync(order.orderId.toString(),req.body.contractUrls);
+    let fetchedOrder = await createOrderContractAsync(order.orderId.toString(), req.body.contractUrls);
 
     return res.json({
         code: 0,
@@ -611,7 +610,7 @@ export let createOrderContract = async (req: Request, res: Response, next: NextF
 };
 
 
-async function createOrderContractAsync(orderId: string,contractUrls : Array<String>) {
+async function createOrderContractAsync(orderId: string, contractUrls: Array<String>) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -624,7 +623,7 @@ async function createOrderContractAsync(orderId: string,contractUrls : Array<Str
 
     let postData = JSON.stringify({
         orderId: orderId,
-        contractUrls:contractUrls
+        contractUrls: contractUrls
     });
 
     return new Promise((resolve, reject) => {
@@ -675,9 +674,8 @@ async function createOrderContractAsync(orderId: string,contractUrls : Array<Str
 export let getOrderContract = async (req, res, next) => {
 
     // 查询准备中的订单
-    let orderobj = await OrderModel.findOne({ orderId: req.params.orderId});
-    if(!orderobj)
-    {
+    let orderobj = await OrderModel.findOne({ orderId: req.params.orderId });
+    if (!orderobj) {
         return res.json({
             code: -1,
             message: "error : can't find order ",

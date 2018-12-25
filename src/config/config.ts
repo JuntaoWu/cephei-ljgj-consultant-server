@@ -52,6 +52,7 @@ const envVarsSchema = Joi.object({
         .description('MSSQL_DATABASE'),
     REDIS_URI: Joi.string().required()
         .description('REDIS_URI'),
+    ID_DATE_FORMAT: Joi.string().default("YYYYMMDDHHmm")
 }).unknown()
     .required();
 
@@ -106,6 +107,9 @@ export const config = {
         smsSecretAccessKey: envVars.SMS_SECRET_ACCESS_KEY,
         smsSignName: envVars.SMS_SIGN_NAME,
         smsTemplateCode: envVars.SMS_TEMPLATE_CODE,
+    },
+    formats: {
+        idDateFormat: envVars.ID_DATE_FORMAT
     }
 };
 

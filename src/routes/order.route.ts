@@ -16,6 +16,8 @@ router.get('/:orderId', validate(paramValidation.getOrderDetail), passport.authe
 
 router.get('/:orderId/getOrderContract', validate(paramValidation.getOrderContract), orderCtrl.getOrderContract);
 
+router.get('/:orderId/getOrderDiarys', validate(paramValidation.getOrderDiarys), orderCtrl.getOrderDiarys);
+
 router.post('/create', passport.authenticate('jwt'), orderCtrl.create);
 
 router.post('/editOrderAmount', validate(paramValidation.editOrderAmount), orderCtrl.editOrderAmount);
@@ -23,8 +25,6 @@ router.post('/editOrderAmount', validate(paramValidation.editOrderAmount), order
 router.post('/appendOrderWorkToOrder', validate(paramValidation.appendOrderWorkToOrder), orderCtrl.appendOrderWorkToOrder);
 
 router.post('/editOrderWorkToOrder', validate(paramValidation.editOrderWorkToOrder), orderCtrl.editOrderWorkToOrder);
-
-router.get('/getOrderDiarys', validate(paramValidation.getOrderDiarys), orderCtrl.getOrderDiarys);
 
 router.post('/createOrderDiary', validate(paramValidation.createOrderDiary), orderCtrl.createOrderDiary);
 
