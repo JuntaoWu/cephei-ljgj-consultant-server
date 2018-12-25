@@ -14,6 +14,8 @@ router.get('/', passport.authenticate('jwt'), orderCtrl.list);
 
 router.get('/:orderId', validate(paramValidation.getOrderDetail), passport.authenticate('jwt'), orderCtrl.load);
 
+router.get('/:orderId/getOrderContract', validate(paramValidation.getOrderContract), orderCtrl.getOrderContract);
+
 router.post('/create', passport.authenticate('jwt'), orderCtrl.create);
 
 router.post('/editOrderAmount', validate(paramValidation.editOrderAmount), orderCtrl.editOrderAmount);

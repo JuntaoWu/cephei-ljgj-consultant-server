@@ -592,7 +592,7 @@ export let getOrderDiarys = async (req: Request, res: Response, next: NextFuncti
 
 };
 
-//创建订单日志
+//创建订单合同
 export let createOrderContract = async (req: Request, res: Response, next: NextFunction) => {
     let order = await OrderModel.findOne({ orderId: req.body.orderId });
 
@@ -672,6 +672,31 @@ async function createOrderContractAsync(orderId: string,contractUrls : Array<Str
 
 
 
+export let getOrderContract = async (req, res, next) => {
+
+    // 查询准备中的订单
+    let orderobj = await OrderModel.findOne({ orderId: req.params.orderId});
+    if(!orderobj)
+    {
+        return res.json({
+            code: -1,
+            message: "error : can't find order ",
+            data: null
+        });
+    }
+
+    let fetchedOrders = await getOrderContractAsync(req.params.orderId);
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: fetchedOrders
+    });
+};
+
+
+
+
 //获取合同
 async function getOrderContractAsync(orderId: string) {
     const serviceJwtToken = jwt.sign({
@@ -681,7 +706,7 @@ async function getOrderContractAsync(orderId: string) {
 
     const hostname = config.service.peerHost;
     const port = config.service.peerPort;
-    const sharedOrderPath = `/api/shared/order/${orderId}?token=${serviceJwtToken}`;
+    const sharedOrderPath = `/api/shared/order/${orderId}/getOrderContract/?token=${serviceJwtToken}`;
     console.log(hostname, sharedOrderPath);
 
     return new Promise((resolve, reject) => {
@@ -741,5 +766,8 @@ export let create = async (req, res, next) => {
         data: order
     });
 };
+
+
+
 
 export default { list, load, create };
