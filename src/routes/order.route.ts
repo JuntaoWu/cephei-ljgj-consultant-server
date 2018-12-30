@@ -18,6 +18,10 @@ router.get('/:orderId/getOrderContract', validate(paramValidation.getOrderContra
 
 router.get('/:orderId/getOrderDiarys', validate(paramValidation.getOrderDiarys), orderCtrl.getOrderDiarys);
 
+router.get('/:orderId/getOrderFunds', validate(paramValidation.getOrderFunds), orderCtrl.getOrderFunds);
+
+router.post('/:orderId/createOrderFundItem', validate(paramValidation.createOrderFundItem), orderCtrl.createOrderFundItem);
+
 router.post('/create', passport.authenticate('jwt'), orderCtrl.create);
 
 router.post('/editOrderAmount', validate(paramValidation.editOrderAmount), orderCtrl.editOrderAmount);

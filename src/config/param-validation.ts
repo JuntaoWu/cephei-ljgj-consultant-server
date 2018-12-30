@@ -38,7 +38,19 @@ export default {
         }
     },
      // GET /api/order/:orderId
+     createOrderFundItem: {
+        body: {
+            orderId: Joi.string().required()
+        }
+    },
+     // GET /api/order/:orderId
      getOrderDiarys: {
+        params: {
+            orderId: Joi.string().required()
+        }
+    },
+    // GET /api/order/:orderId
+    getOrderFunds: {
         params: {
             orderId: Joi.string().required()
         }
