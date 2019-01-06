@@ -40,6 +40,7 @@ app.use(express.static(path.join(__dirname, '../public'), {
 app.use(express.static(path.join(__dirname, '../public/sw.js'), {
     etag: false
 }), cors());
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use(passport.initialize());
 app.use(passport.session());

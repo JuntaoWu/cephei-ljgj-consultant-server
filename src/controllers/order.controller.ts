@@ -786,7 +786,7 @@ async function getOrderFundsAsync(orderId: string) {
 
     const hostname = config.service.peerHost;
     const port = config.service.peerPort;
-    const sharedOrderPath = `/api/shared/order/${orderId}/getOrderFunds/?token=${serviceJwtToken}`;
+    const sharedOrderPath = `/api/shared/order/${orderId}/getOrderFunds/?orderid=${orderId}&token=${serviceJwtToken}`;
     console.log(hostname, sharedOrderPath);
 
     return new Promise((resolve, reject) => {

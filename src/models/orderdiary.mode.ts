@@ -35,6 +35,9 @@ export class OrderDiary extends Typegoose {
 
     @prop()
     public diaryPicUrls?: Array<String>;
+
+    @prop()
+    public createdBy?: String;
 }
 
 var OrderDiaryModel = new OrderDiary().getModelForClass(OrderDiary, {
