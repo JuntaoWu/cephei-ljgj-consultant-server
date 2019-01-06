@@ -586,7 +586,11 @@ export let getOrderDiarys = async (req: Request, res: Response, next: NextFuncti
         });
     }
     else {
-        return res.json(diarys);
+        return res.json({
+            code: 0,
+            message: "OK",
+            data: diarys
+        });
     }
 
 };
