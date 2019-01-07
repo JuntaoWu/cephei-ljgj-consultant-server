@@ -13,6 +13,7 @@ import * as httpStatus from 'http-status';
 import * as moment from 'moment';
 
 import OrderDiaryModel from '../models/orderdiary.mode';
+import { getClassForDocument } from 'typegoose';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
@@ -839,7 +840,7 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
         return next(err);
     }
 
-    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount);
+    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount,req.body.fundItemType);
 
     return res.json({
         code: 0,
@@ -849,7 +850,7 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
 };
 
 
-async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number) {
+async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number,fundItemType:Number) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -862,7 +863,8 @@ async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number)
 
     let postData = JSON.stringify({
         orderId: orderId,
-        fundItemAmount:fundItemAmount
+        fundItemAmount:fundItemAmount,
+        fundItemType:fundItemType
     });
 
     return new Promise((resolve, reject) => {
