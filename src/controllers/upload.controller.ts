@@ -12,12 +12,16 @@ import APIError from '../helpers/APIError';
 
 export let post = async (req: Request, res: Response, next: NextFunction) => {
 
-    
+    console.log("Received file:", req.file.originalname, req.file.filename);
 
     return res.json({
         code: 0,
         message: 'OK',
-        data: ""
+        data: {
+            originalname: req.file.originalname,
+            filename: req.file.filename,
+            path: req.file.path
+        }
     });
 };
 
