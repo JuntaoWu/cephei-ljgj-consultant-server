@@ -13,6 +13,7 @@ import APIError from '../helpers/APIError';
 export let post = async (req: Request, res: Response, next: NextFunction) => {
 
     console.log("Received file:", req.file.originalname, req.file.filename);
+    console.log(req.file);
 
     return res.json({
         code: 0,
@@ -20,7 +21,7 @@ export let post = async (req: Request, res: Response, next: NextFunction) => {
         data: {
             originalname: req.file.originalname,
             filename: req.file.filename,
-            path: req.file.path
+            path: `/uploads/${req.file.filename}`
         }
     });
 };
