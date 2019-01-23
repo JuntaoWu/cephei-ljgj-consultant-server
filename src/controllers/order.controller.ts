@@ -26,7 +26,15 @@ export let list = async (req: Request, res: Response, next: NextFunction) => {
     let orders = await OrderModel.find(condition).skip(+skip).limit(+limit);
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -44,7 +52,15 @@ export let getAllOrderList = async (req, res, next) => {
     let orders = await OrderModel.find({ assignee: req.user.phoneNo });
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -59,7 +75,15 @@ export let getInitOrderList = async (req, res, next) => {
     let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Initializing });
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -74,7 +98,15 @@ export let getPreparingOrderList = async (req, res, next) => {
     let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Preparing });
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -89,7 +121,15 @@ export let getInProgressOrderList = async (req, res, next) => {
     let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.InProgress });
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -104,7 +144,15 @@ export let getCompletedOrderList = async (req, res, next) => {
     let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Completed });
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -120,7 +168,15 @@ export let getCanceledOrderList = async (req, res, next) => {
     let orders = await OrderModel.find({ assignee: req.user.phoneNo, orderStatus: OrderStatus.Canceled });
     const orderIds = orders.map(i => i.orderId.toString());
 
-    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds);
+    let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError('getOrdersViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -195,7 +251,15 @@ export let load = async (req: Request, res: Response, next: NextFunction) => {
         return next(err);
     }
 
-    let fetchedOrder = await getOrderDetailViaPublicServiceAsync(order.orderId.toString());
+    let fetchedOrder = await getOrderDetailViaPublicServiceAsync(order.orderId.toString())
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrder) {
+        const err = new APIError('getOrderDetailViaPublicServiceAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -265,7 +329,15 @@ export let appendOrderWorkToOrder = async (req: Request, res: Response, next: Ne
         return next(err);
     }
 
-    let fetchedOrder = await appendOrderWorkToOrderAsync(order.orderId.toString(), req.body.orderWork.toString());
+    let fetchedOrder = await appendOrderWorkToOrderAsync(order.orderId.toString(), req.body.orderWork.toString())
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrder) {
+        const err = new APIError('appendOrderWorkToOrderAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -342,7 +414,15 @@ export let editOrderWorkToOrder = async (req: Request, res: Response, next: Next
         return next(err);
     }
 
-    let fetchedOrder = await editOrderWorkToOrderAsync(req.body.orderWorkid.toString(), req.body.orderWork.toString());
+    let fetchedOrder = await editOrderWorkToOrderAsync(req.body.orderWorkid.toString(), req.body.orderWork.toString())
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrder) {
+        const err = new APIError('editOrderWorkToOrderAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -421,7 +501,15 @@ export let editOrderAmount = async (req: Request, res: Response, next: NextFunct
         return next(err);
     }
 
-    let fetchedOrder = await editOrderAmountAsync(order.orderId.toString(), req.body.orderAmount.toString());
+    let fetchedOrder = await editOrderAmountAsync(order.orderId.toString(), req.body.orderAmount.toString())
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrder) {
+        const err = new APIError('editOrderAmountAsync failed', httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -539,11 +627,8 @@ export let createOrderDiary = async (req: Request, res: Response, next: NextFunc
     let order = await OrderModel.findOne({ orderId: req.body.orderId });
 
     if (!order) {
-        return res.json({
-            code: -1,
-            message: "error",
-            data: null
-        });
+        const err = new APIError('Cannot find order.', httpStatus.NOT_FOUND, true);
+        return next(err);
     }
 
     let diaryid = `ORDER_DIARY_${_.random(10000, 99999)}_${moment().format(config.formats.idDateFormat)}`;
@@ -579,11 +664,8 @@ export let getOrderDiarys = async (req: Request, res: Response, next: NextFuncti
     let diarys = await OrderDiaryModel.find({ orderId: req.params.orderId });
 
     if (!diarys) {
-        return res.json({
-            code: -1,
-            message: "error",
-            data: null
-        });
+        const err = new APIError('Cannot find OrderDiary.', httpStatus.NOT_FOUND, true);
+        return next(err);
     }
     else {
         return res.json({
@@ -592,7 +674,6 @@ export let getOrderDiarys = async (req: Request, res: Response, next: NextFuncti
             data: diarys
         });
     }
-
 };
 
 
@@ -606,7 +687,15 @@ export let createOrderContract = async (req: Request, res: Response, next: NextF
         return next(err);
     }
 
-    let fetchedOrder = await createOrderContractAsync(order.orderId.toString(), req.body.contractUrls);
+    let fetchedOrder = await createOrderContractAsync(order.orderId.toString(), req.body.contractUrls)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrder) {
+        const err = new APIError("createOrderContractAsync failed.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -680,16 +769,21 @@ async function createOrderContractAsync(orderId: string, contractUrls: Array<Str
 export let getOrderContract = async (req, res, next) => {
 
     // 查询准备中的订单
-    let orderobj = await OrderModel.findOne({ orderId: req.params.orderId });
-    if (!orderobj) {
-        return res.json({
-            code: -1,
-            message: "error : can't find order ",
-            data: null
-        });
+    let order = await OrderModel.findOne({ orderId: req.params.orderId });
+    if (!order) {
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
     }
 
-    let fetchedOrders = await getOrderContractAsync(req.params.orderId);
+    let fetchedOrders = await getOrderContractAsync(req.params.orderId)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError("getOrderContractAsync failed.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -759,14 +853,19 @@ export let getOrderFunds = async (req: Request, res: Response, next: NextFunctio
     let diarys = await OrderModel.find({ orderId: req.params.orderId });
 
     if (!diarys) {
-        return res.json({
-            code: -1,
-            message: "error",
-            data: null
-        });
+        const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
+        return next(err);
     }
 
-    let fetchedOrders = await getOrderFundsAsync(req.params.orderId);
+    let fetchedOrders = await getOrderFundsAsync(req.params.orderId)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrders) {
+        const err = new APIError("getOrderFundsAsync failed.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -839,7 +938,15 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
         return next(err);
     }
 
-    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount);
+    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount)
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!fetchedOrder) {
+        const err = new APIError("createOrderFundItemAsync failed.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -862,7 +969,7 @@ async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number)
 
     let postData = JSON.stringify({
         orderId: orderId,
-        fundItemAmount:fundItemAmount
+        fundItemAmount: fundItemAmount
     });
 
     return new Promise((resolve, reject) => {
@@ -925,8 +1032,5 @@ export let create = async (req, res, next) => {
         data: order
     });
 };
-
-
-
 
 export default { list, load, create };
