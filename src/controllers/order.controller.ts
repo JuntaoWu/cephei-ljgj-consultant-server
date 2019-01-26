@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import * as http from 'http';
 import config from '../config/config';
-import OrderModel, { OrderStatus } from '../models/order.model';
+import OrderModel, { OrderStatus, Order } from '../models/order.model';
 import orderContractModel, { OrderContract } from '../models/ordercontract.model';
 import APIError from '../helpers/APIError';
 import * as httpStatus from 'http-status';
@@ -832,14 +832,24 @@ async function getOrderFundsAsync(orderId: string) {
 
 //创建订单合同
 export let createOrderFundItem = async (req: Request, res: Response, next: NextFunction) => {
-    let order = await OrderModel.findOne({ orderId: req.body.orderId });
+    const order = await OrderModel.findOne({ orderId: req.body.orderId }).catch(error => {
+        console.log('Error while OrderModel.findOne:', error);
+        return null;
+    });
 
     if (!order) {
         const err = new APIError("Cannot find order.", httpStatus.NOT_FOUND, true);
         return next(err);
     }
 
-    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount);
+    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount).catch(error => {
+        console.error('Error while createOrderFundItemAsync:', error);
+    });
+
+    if (!fetchedOrder) {
+        const err = new APIError("Cannot create fundItem.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
 
     return res.json({
         code: 0,
@@ -847,7 +857,6 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
         data: fetchedOrder
     });
 };
-
 
 async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number) {
     const serviceJwtToken = jwt.sign({
@@ -862,7 +871,7 @@ async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number)
 
     let postData = JSON.stringify({
         orderId: orderId,
-        fundItemAmount:fundItemAmount
+        fundItemAmount: fundItemAmount
     });
 
     return new Promise((resolve, reject) => {
@@ -903,7 +912,7 @@ async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number)
                     return reject(ex);
                 }
             });
-        });
+        });l
         request.end(postData);
     });
 }
