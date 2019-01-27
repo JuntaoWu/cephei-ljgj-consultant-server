@@ -1140,7 +1140,7 @@ async function createUnifiedOrderAsync(fundItemId: string) {
 
     const hostname = config.service.peerHost;
     const port = config.service.peerPort;
-    const sharedOrderPath = `/api/shared/order/revokeOrderFundItem?token=${serviceJwtToken}`;
+    const sharedOrderPath = `/api/payment/createUnifiedOrderByFundItem?token=${serviceJwtToken}`;
     console.log(hostname, sharedOrderPath);
 
     let postData = JSON.stringify({
@@ -1158,7 +1158,7 @@ async function createUnifiedOrderAsync(fundItemId: string) {
                 'Content-Length': Buffer.byteLength(postData)
             }
         }, (wxRes) => {
-            console.log("response from service api /api/shared/order");
+            console.log("response from service api /api/payment/createUnifiedOrderByFundItem");
 
             if (wxRes.statusCode != 200) {
                 console.error(wxRes.statusCode, wxRes.statusMessage);
