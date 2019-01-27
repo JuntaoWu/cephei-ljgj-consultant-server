@@ -12,6 +12,8 @@ import paramValidation from '../config/param-validation';
 
 router.get('/', passport.authenticate('jwt'), orderCtrl.list);
 
+router.get('/getQRCode', passport.authenticate('jwt'), orderCtrl.getQRCode);
+
 router.get('/:orderId', validate(paramValidation.getOrderDetail), passport.authenticate('jwt'), orderCtrl.load);
 
 router.get('/:orderId/getOrderContract', validate(paramValidation.getOrderContract), orderCtrl.getOrderContract);
@@ -38,6 +40,5 @@ router.post('/revokeOrderFundItem', orderCtrl.revokeOrderFundItem);
 
 router.post('/createUnifiedOrder', orderCtrl.createUnifiedOrder);
 
-router.get('/getQRCode', passport.authenticate('jwt'), orderCtrl.getQRCode);
 
 export default router;
