@@ -13,7 +13,7 @@ import * as httpStatus from 'http-status';
 import * as moment from 'moment';
 
 import OrderDiaryModel from '../models/orderdiary.mode';
-import { getClassForDocument } from 'typegoose';
+import * as qrimage from 'qr-image';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
     const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
@@ -942,7 +942,7 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
         return next(err);
     }
 
-    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount,req.body.fundItemType)
+    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount, req.body.fundItemType)
         .catch(error => {
             console.error(error);
         });
@@ -959,7 +959,7 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
     });
 };
 
-async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number, fundItemType:Number) {
+async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number, fundItemType: Number) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -973,7 +973,7 @@ async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number,
     let postData = JSON.stringify({
         orderId: orderId,
         fundItemAmount: fundItemAmount,
-        fundItemType:fundItemType
+        fundItemType: fundItemType
     });
 
     return new Promise((resolve, reject) => {
@@ -1057,6 +1057,87 @@ export let revokeOrderFundItem = async (req, res, next) => {
 };
 
 async function revokeOrderFundItemAsync(fundItemId: string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/revokeOrderFundItem?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        fundItemId: fundItemId,
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+        request.end(postData);
+    });
+}
+
+export let createUnifiedOrder = async (req, res, next) => {
+    let unifiedOrder = await createUnifiedOrderAsync(req.body.fundItemId.toString())
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!unifiedOrder) {
+        const err = new APIError("createUnifiedOrderAsync failed.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
+
+    // todo: create qrcode with unifiedOrder url string.
+    var img = qrimage.image(unifiedOrder, { size: 5,ec_level: "Q" });
+    res.writeHead(200, { 'Content-Type': 'image/png' });
+    img.pipe(res);
+
+    // return res.json({
+    //     code: 0,
+    //     message: 'OK',
+    //     data: unifiedOrder
+    // });
+};
+
+async function createUnifiedOrderAsync(fundItemId: string) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,

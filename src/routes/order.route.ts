@@ -36,4 +36,6 @@ router.post('/createOrderContract', validate(paramValidation.createOrderContract
 
 router.post('/revokeOrderFundItem', orderCtrl.revokeOrderFundItem);
 
+router.post('/createUnifiedOrder', orderCtrl.createUnifiedOrder);
+
 export default router;
