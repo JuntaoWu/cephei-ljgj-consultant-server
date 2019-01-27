@@ -34,4 +34,6 @@ router.post('/createOrderDiary', validate(paramValidation.createOrderDiary), ord
 
 router.post('/createOrderContract', validate(paramValidation.createOrderContract), orderCtrl.createOrderContract);
 
+router.post('/revokeOrderFundItem', orderCtrl.revokeOrderFundItem);
+
 export default router;

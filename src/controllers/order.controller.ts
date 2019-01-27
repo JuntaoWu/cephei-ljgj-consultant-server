@@ -1037,4 +1037,81 @@ export let create = async (req, res, next) => {
     });
 };
 
+export let revokeOrderFundItem = async (req, res, next) => {
+
+    let revokedFundItem = await revokeOrderFundItemAsync(req.body.fundItemId.toString())
+        .catch(error => {
+            console.error(error);
+        });
+
+    if (!revokedFundItem) {
+        const err = new APIError("revokeOrderFundItemAsync failed.", httpStatus.INTERNAL_SERVER_ERROR, true);
+        return next(err);
+    }
+
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: revokedFundItem
+    });
+};
+
+async function revokeOrderFundItemAsync(fundItemId: string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/revokeOrderFundItem?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        fundItemId: fundItemId,
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/order");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+        });
+        request.end(postData);
+    });
+}
+
 export default { list, load, create };
