@@ -942,7 +942,7 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
         return next(err);
     }
 
-    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount)
+    let fetchedOrder = await createOrderFundItemAsync(order.orderId.toString(), req.body.fundItemAmount,req.body.fundItemType)
         .catch(error => {
             console.error(error);
         });
@@ -959,7 +959,7 @@ export let createOrderFundItem = async (req: Request, res: Response, next: NextF
     });
 };
 
-async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number) {
+async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number, fundItemType:Number) {
     const serviceJwtToken = jwt.sign({
         service: config.service.name,
         peerName: config.service.peerName,
@@ -972,7 +972,8 @@ async function createOrderFundItemAsync(orderId: string, fundItemAmount: Number)
 
     let postData = JSON.stringify({
         orderId: orderId,
-        fundItemAmount: fundItemAmount
+        fundItemAmount: fundItemAmount,
+        fundItemType:fundItemType
     });
 
     return new Promise((resolve, reject) => {
