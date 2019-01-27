@@ -38,4 +38,6 @@ router.post('/revokeOrderFundItem', orderCtrl.revokeOrderFundItem);
 
 router.post('/createUnifiedOrder', orderCtrl.createUnifiedOrder);
 
+router.get('/getQRCode', passport.authenticate('jwt'), orderCtrl.getQRCode);
+
 export default router;

@@ -1125,16 +1125,11 @@ export let createUnifiedOrder = async (req, res, next) => {
         return next(err);
     }
 
-    // todo: create qrcode with unifiedOrder url string.
-    var img = qrimage.image(unifiedOrder, { size: 5,ec_level: "Q" });
-    res.writeHead(200, { 'Content-Type': 'image/png' });
-    img.pipe(res);
-
-    // return res.json({
-    //     code: 0,
-    //     message: 'OK',
-    //     data: unifiedOrder
-    // });
+    return res.json({
+        code: 0,
+        message: 'OK',
+        data: unifiedOrder
+    });
 };
 
 async function createUnifiedOrderAsync(fundItemId: string) {
@@ -1194,5 +1189,13 @@ async function createUnifiedOrderAsync(fundItemId: string) {
         request.end(postData);
     });
 }
+
+export let getQRCode = (req, res, next) => {
+    // todo: create qrcode with unifiedOrder url string.
+    const url = decodeURIComponent(req.query.code_url);
+    var img = qrimage.image(url, { size: 5, ec_level: "Q" });
+    res.writeHead(200, { 'Content-Type': 'image/png' });
+    img.pipe(res);
+};
 
 export default { list, load, create };
