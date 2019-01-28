@@ -7,7 +7,7 @@ import * as httpStatus from 'http-status';
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         console.log(file);
-        const directory = path.join(__dirname, `../../uploads/`);
+        const directory = path.join(__dirname, `../../static/consultant/`);
         return cb(null, directory);
     },
     filename: (req, file, cb) => {
@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 });
 
 export default multer({
-    dest: 'uploads',
+    dest: 'static/consultant',
     storage: storage,
     fileFilter: (req, file, cb) => {
         if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/png') {

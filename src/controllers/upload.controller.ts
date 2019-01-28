@@ -21,7 +21,7 @@ export let post = async (req: Request, res: Response, next: NextFunction) => {
         data: {
             originalname: req.file.originalname,
             filename: req.file.filename,
-            path: `/uploads/${req.file.filename}`
+            path: `/consultant/${req.file.filename}`
         }
     });
 };
