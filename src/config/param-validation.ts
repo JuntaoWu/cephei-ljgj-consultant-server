@@ -70,4 +70,9 @@ export default {
             orderId: Joi.string().required()
         }
     },
+    assignOrder: {
+        body: {
+            orderId: Joi.string().required()
+        }
+    }
 };

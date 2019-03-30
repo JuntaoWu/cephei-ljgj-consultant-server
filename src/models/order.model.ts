@@ -86,7 +86,7 @@ export class Order extends Typegoose {
     @prop()
     public projectid: String;
 
-    @prop({ default: OrderPaymentStatus.Waiting })
+    @prop()
     public paymentStatus?: OrderPaymentStatus;
 
     @prop()

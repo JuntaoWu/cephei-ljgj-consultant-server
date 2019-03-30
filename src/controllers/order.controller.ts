@@ -12,7 +12,7 @@ import * as httpStatus from 'http-status';
 
 import * as moment from 'moment';
 
-import OrderDiaryModel from '../models/orderdiary.mode';
+import OrderDiaryModel, { OrderDiaryType } from '../models/orderdiary.model';
 import * as qrimage from 'qr-image';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
@@ -582,45 +582,38 @@ async function editOrderAmountAsync(orderId: string, orderAmount: Number) {
 /*
     获取订单折扣金额，根据不同条件获取订单折扣金额
 */
-let getOrderDiaryThemeByType = function (diarytype) {
-    switch (diarytype) {
-        case "1":
-            {
-                return "联系用户";
-            }
+let getOrderDiaryThemeByType = function (diaryType) {
+    let result = "";
+    switch (+diaryType) {
+        case OrderDiaryType.ConfirmOrder:
+            result = "订单确认";
             break;
-        case "2":
-            {
-                return "上门查看";
-            }
+        case OrderDiaryType.ContactUser:
+            result = "联系用户";
             break;
-        case "3":
-            {
-                return "准备施工";
-            }
+        case OrderDiaryType.VisitUser:
+            result = "上门查看";
             break;
-        case "4":
-            {
-                return "正在施工";
-            }
+        case OrderDiaryType.Reviewed:
+            result = "审核完成";
             break;
-        case "5":
-            {
-                return "项目完成";
-            }
+        case OrderDiaryType.Preparing:
+            result = "准备施工";
             break;
-        case "6":
-            {
-                return "项目中止/取消";
-            }
+        case OrderDiaryType.InProgress:
+            result = "正在施工";
             break;
-        case "7":
-            {
-                return "其他";
-            }
+        case OrderDiaryType.Completed:
+            result = "施工完成";
+            break;
+        case OrderDiaryType.Canceled:
+            result = "订单终止";
+            break;
+        case OrderDiaryType.Others:
+            result = "其他";
             break;
     }
-    return "其他";
+    return result;
 }
 
 //创建订单日志
@@ -632,31 +625,101 @@ export let createOrderDiary = async (req: Request, res: Response, next: NextFunc
         return next(err);
     }
 
-    let diaryid = `ORDER_DIARY_${_.random(10000, 99999)}_${moment().format(config.formats.idDateFormat)}`;
+    let diaryId = `ORDER_DIARY_${_.random(10000, 99999)}_${moment().format(config.formats.idDateFormat)}`;
 
     let theme = getOrderDiaryThemeByType(req.body.orderDiaryType);
 
-    let diaryitem = new OrderDiaryModel({
-        orderDiaryId: diaryid,
+    let diaryItem = new OrderDiaryModel({
+        orderDiaryId: diaryId,
         orderId: req.body.orderId,
-        orderDiaryTheme: theme,//
-        orderDiaryType: req.body.orderDiaryType,//
+        orderDiaryTheme: theme,  // 日志主题
+        orderDiaryType: req.body.orderDiaryType,  // 日志类型
         orderDiaryContent: req.body.orderDiaryContent,
         diaryPicUrls: req.body.diaryPicUrls
     });
 
-    let savedContract = await diaryitem.save();
+    let savedDiaryItem = await diaryItem.save();
+
+    if (savedDiaryItem.orderDiaryType == OrderDiaryType.Reviewed) {
+        await completeReviewOrderAsync(req.body.orderId).catch(error => {
+            console.log("completeReviewOrderAsync failed.");
+            console.error(error);
+        });
+    }
 
     return res.json({
         code: 0,
         message: "OK",
         data: {
-            orderDiaryId: diaryid,
+            orderDiaryId: diaryId,
             orderDiaryTheme: theme
         }
     });
 };
 
+async function completeReviewOrderAsync(orderId: string) {
+    const serviceJwtToken = jwt.sign({
+        service: config.service.name,
+        peerName: config.service.peerName,
+    }, config.service.jwtSecret);
+
+    const hostname = config.service.peerHost;
+    const port = config.service.peerPort;
+    const sharedOrderPath = `/api/shared/order/${orderId}/completeReviewOrder/?token=${serviceJwtToken}`;
+    console.log(hostname, sharedOrderPath);
+
+    let postData = JSON.stringify({
+        orderId: orderId,
+    });
+
+    return new Promise((resolve, reject) => {
+        let request = http.request({
+            hostname: hostname,
+            port: port,
+            path: sharedOrderPath,
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        }, (wxRes) => {
+            console.log("response from service api /api/shared/completeReviewOrder");
+
+            if (wxRes.statusCode != 200) {
+                console.error(wxRes.statusCode, wxRes.statusMessage);
+                return reject(wxRes.statusMessage);
+            }
+
+            let orderData = "";
+            wxRes.on("data", (chunk) => {
+                orderData += chunk;
+            });
+            wxRes.on("end", async () => {
+
+                try {
+                    let result = JSON.parse(orderData);
+                    let { code, message, data } = result;
+                    if (code !== 0) {
+                        return reject(message);
+                    }
+                    else {
+                        return resolve(data);
+                    }
+                }
+                catch (ex) {
+                    return reject(ex);
+                }
+            });
+            wxRes.on("error", (error) => {
+                return reject(error);
+            });
+        });
+        request.on("error", (error) => {
+            return reject(error);
+        });
+        request.end(postData);
+    });
+}
 
 
 //获取订单日志

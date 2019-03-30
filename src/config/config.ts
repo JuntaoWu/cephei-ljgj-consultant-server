@@ -8,6 +8,7 @@ dotenv.config();
 
 // define validation for all the env vars
 const envVarsSchema = Joi.object({
+    ASSIGNEE: Joi.string().required(),
     SERVICE_NAME: Joi.string().required(),
     SERVICE_PEER_NAME: Joi.string().required(),
     SERVICE_PEER_HOST: Joi.string().required(),
@@ -62,6 +63,7 @@ if (error) {
 }
 
 export const config = {
+    assignee: envVars.ASSIGNEE,
     service: {
         name: envVars.SERVICE_NAME,
         peerName: envVars.SERVICE_PEER_NAME,

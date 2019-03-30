@@ -6,11 +6,12 @@ export enum OrderDiaryType {
     ConfirmOrder = 0,
     ContactUser = 1,
     VisitUser = 2,
-    Preparing = 3,
-    InProgress = 4,
-    Completed = 5,
-    Canceled = 6,
-    Others = 7
+    Reviewed = 3,
+    Preparing = 4,
+    InProgress = 5,
+    Completed = 6,
+    Canceled = 7,
+    Others = 8
 }
 
 /**

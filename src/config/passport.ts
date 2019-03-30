@@ -68,6 +68,26 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
 
 // const anonymousLogin = new AnonymousStrategy();
 
+// Setting JWT strategy options
+const jwtServiceOptions = {
+    // Telling Passport to check authorization headers for JWT
+    jwtFromRequest: ExtractJwt.fromUrlQueryParameter("token"),
+    // Telling Passport where to find the secret
+    secretOrKey: config.service.jwtSecret
+    // TO-DO: Add issuer and audience checks
+};
+
+const jwtServiceLogin = new JwtStrategy(jwtServiceOptions, (payload, done) => {
+    console.log("jwt service payload ", payload);
+    if (!payload.service || payload.peerName != config.service.name) {
+        return done(null, false);
+    }
+
+    return done(null, {
+        service: payload.service,
+    });
+});
+
 (passport).serializeUser(function (user, done) {
     done(null, user);
 });
@@ -79,5 +99,6 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
 (passport).use('jwt', jwtLogin);
 (passport).use('local', localLogin);
 // (passport).use('anonymous', anonymousLogin);
+(passport).use("jwtService", jwtServiceLogin);
 
 export default passport;
