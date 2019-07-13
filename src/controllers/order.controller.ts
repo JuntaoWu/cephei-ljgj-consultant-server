@@ -16,7 +16,7 @@ import OrderDiaryModel, { OrderDiaryType } from '../models/orderdiary.model';
 import * as qrimage from 'qr-image';
 
 export let list = async (req: Request, res: Response, next: NextFunction) => {
-    const { status = OrderStatus.All, skip = 0, limit = 10 } = req.query;
+    const { status = OrderStatus.All, skip = 0, limit = 1000 } = req.query;
 
     let condition: any = { assignee: req.user.phoneNo };
     if (+status) {
@@ -24,7 +24,7 @@ export let list = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     let totalItems = await OrderModel.count(condition);
-    let orders = await OrderModel.find(condition).skip(+skip).limit(+limit);
+    let orders = await OrderModel.find(condition).sort({ createdAt: -1 }).skip(+skip).limit(+limit);
     const orderIds = orders.map(i => i.orderId.toString());
 
     let fetchedOrders = await getOrdersViaPublicServiceAsync(orderIds)
